@@ -43,7 +43,7 @@ const AddNodeOnEdgeDrop = () => {
  // Function to fetch nodes from the API
 const fetchNodesFromApi = async () => {
   try {
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0OTkyZDZmZGNiMWY4MTQ5YWU5Y2VjNSIsImlhdCI6MTY5MDUzMzAzMSwiZXhwIjoxNjkwNjE5NDMxfQ.McXd8G3vf5m1XL9vAi9RFCwEljTpI3pxjK_2LbYGeVc"; // Replace with your actual access token
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0OTkyZDZmZGNiMWY4MTQ5YWU5Y2VjNSIsImlhdCI6MTY5MDg2NDI4OSwiZXhwIjoxNjkwOTUwNjg5fQ.T_rHKLgPL6PQjgJa4fnLUCutiomqtsD5S4HpvjJ5inI"; // Replace with your actual access token
     const headers = {
       Authorization: `Bearer ${token}`,
       // Add any other headers your API requires here
