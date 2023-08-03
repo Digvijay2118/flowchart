@@ -10,6 +10,8 @@ import "reactflow/dist/style.css";
 
 // import "./index.css";
 
+import initialedges  from "../../src/flowchart/edges"
+
 const initialNodes = [
   {
     id: "0",
@@ -31,7 +33,7 @@ const AddNodeOnEdgeDrop = () => {
   const connectingNodeId = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   // const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialedges);
   const [nodeName, setNodeName] = useState('Node');
   const { project } = useReactFlow();
   const onConnect = useCallback(
@@ -43,14 +45,9 @@ const AddNodeOnEdgeDrop = () => {
  // Function to fetch nodes from the API
 const fetchNodesFromApi = async () => {
   try {
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0OTkyZDZmZGNiMWY4MTQ5YWU5Y2VjNSIsImlhdCI6MTY5MDg2NDI4OSwiZXhwIjoxNjkwOTUwNjg5fQ.T_rHKLgPL6PQjgJa4fnLUCutiomqtsD5S4HpvjJ5inI"; // Replace with your actual access token
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      // Add any other headers your API requires here
-    };
-
-    const response = await fetch("https://ecommerce-65xx.onrender.com/customer/viewAll", {
-      headers: headers,
+  
+    const response = await fetch("http://localhost:5000/api/v1/flowchart", {
+    
  
     });
 
@@ -60,16 +57,17 @@ const fetchNodesFromApi = async () => {
     }
 
     const data = await response.json();
-    console.log("data===>",data.customer.data)
- const updatedNodes = data.customer.data.map((node) => {
-  const nodeId = node.id != null ? node.id.toString() : getId(); // Ensure id is a string or generate a new one
+    console.log("data===>",data)
+ const updatedNodes = data.map((node) => {
+  const nodeId = node.Id != null ? node.Id.toString() : getId(); // Ensure id is a string or generate a new one
   return {
     id: nodeId,
     type: "input",
-    data: { label: node.name }, // Use the 'name' property as the label
+    data: { label: node.label
+    }, // Use the 'name' property as the label
     // position: { x: 0, y: 50 },
-    position: node.position ? { x: node.position.x, y: node.position.y } : { x: 0, y: 50 }, // Use the position from the API if available, otherwise use default position
-    edges:node.edges  
+    position: node.position ? { x: node.x, y: node.y } : { x: 0, y: 50 }, // Use the position from the API if available, otherwise use default position
+    // edges:node.edges  
     // {source:node.edges.sourse, target:node.edges.target}:{source:1, y:2},
    
     
@@ -99,7 +97,7 @@ const fetchNodesFromApi = async () => {
     //     return node;
     //   })
     // );
-  }, [nodeName, setNodes]);
+  }, [nodeName, setNodes,setEdges]);
 
 
 
@@ -149,9 +147,7 @@ const fetchNodesFromApi = async () => {
     },
     [project]
   );
-  // const deleteNodeById = (id) => {
-  //   setNodes(nds => nds.filter(node => node.id !== id));
-  // };
+
 
 
 
@@ -165,8 +161,10 @@ const fetchNodesFromApi = async () => {
         onConnect={onConnect}
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
+        snapToGrid={true}
         fitView
         fitViewOptions={fitViewOptions}
+        attributionPosition="top-right"
       >
         
              <div className="updatenode__controls">
