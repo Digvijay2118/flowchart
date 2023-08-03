@@ -7,6 +7,7 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import axios from 'axios';
 
 
 
@@ -33,6 +34,8 @@ const AddNodeOnEdgeDrop = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { project } = useReactFlow();
   const [nodeName, setNodeName] = useState("");
+   // This state is to store the data of the first node
+   const [firstNodeData, setFirstNodeData] = useState(null);
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
 
   useEffect(() => {
@@ -46,6 +49,8 @@ const AddNodeOnEdgeDrop = () => {
             ...node.data,
             label: nodeName,
           };
+            // Update the firstNodeData with the new data for the first node
+            setFirstNodeData(node.data);
         }
 
         return node;
@@ -83,6 +88,23 @@ const AddNodeOnEdgeDrop = () => {
 }, [project]);
 
 
+const submitToDatabase = () => {
+  if (nodes.length > 0) {
+    const firstNodeData = nodes[0].data;
+    axios.post('http://localhost:5000/api/nodes', { label: firstNodeData.label })
+      .then((response) => {
+        console.log(response.data);
+        // Handle the response here, e.g., show a success message to the user.
+      })
+      .catch((error) => {
+        console.error('Error submitting to database:', error);
+        // Handle the error here, e.g., show an error message to the user.
+      });
+  }
+}
+
+
+
   return (
     <div className="wrapper" ref={reactFlowWrapper} style={{ height: 500 }} >
       <ReactFlow
@@ -100,6 +122,7 @@ const AddNodeOnEdgeDrop = () => {
        <div className="updatenode__controls">
         <label>label:</label>
         <input value={nodeName} onChange={(evt) => setNodeName(evt.target.value)} />
+        <button onClick={submitToDatabase}>Submit</button>
         </div>
     </div>
   );
