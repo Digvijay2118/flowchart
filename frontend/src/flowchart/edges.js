@@ -2,7 +2,7 @@ import { MarkerType } from 'reactflow';
 
 export default [
   {
-   id:'e1',
+   id:'e1-2',
     source: '0',
     target: '1',
     label: 'hello',
@@ -10,24 +10,25 @@ export default [
   },
   {
     id: 'ew2',
-    source: 'edges-2',
-    target: 'edges-2a',
+    source: '1',
+    target: '2',
     type: 'smoothstep',
     label: 'smoothstep edge',
   },
   {
     id: 'edges-e2-3',
-    source: 'edges-2',
-    target: 'edges-3',
+    source: '2',
+    target: '3',
     type: 'step',
     label: 'step edge',
   },
   {
     id: 'edges-e3-4',
-    source: 'edges-3',
-    target: 'edges-4',
-    type: 'straight',
-    label: 'straight edge',
+    source: '2',
+    target: '4',
+    animated: true,
+    label: 'animated styled edge',
+    style: { stroke: 'red' },
   },
   {
     id: 'edges-e3-3a',

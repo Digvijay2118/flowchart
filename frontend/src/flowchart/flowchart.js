@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback, useRef, useState } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -10,12 +10,12 @@ import "reactflow/dist/style.css";
 
 // import "./index.css";
 
-import initialedges  from "../../src/flowchart/edges"
+import initialedges from "../../src/flowchart/edges";
 
 const initialNodes = [
   {
     id: "0",
-    type: "input",  
+    type: "input",
     data: { label: "Node" },
     position: { x: 0, y: 50 },
   },
@@ -34,52 +34,47 @@ const AddNodeOnEdgeDrop = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   // const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialedges);
-  const [nodeName, setNodeName] = useState('Node');
+  const [individualNodeNames, setIndividualNodeNames] = useState({});
+  const [nodeName, setNodeName] = useState("");
   const { project } = useReactFlow();
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
     []
   );
 
-  
- // Function to fetch nodes from the API
-const fetchNodesFromApi = async () => {
-  try {
-  
-    const response = await fetch("http://localhost:5000/api/v1/flowchart", {
-    
- 
-    });
+  // Function to fetch nodes from the API
+  const fetchNodesFromApi = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/v1/flowchart",
+        {}
+      );
 
-    if (!response.ok) {
+      if (!response.ok) {
+        throw new Error("Failed to fetch nodes from API");
+      }
 
-      throw new Error("Failed to fetch nodes from API");
+      const data = await response.json();
+      console.log("data===>", data);
+      const updatedNodes = data.map((node) => {
+        const nodeId = node.Id != null ? node.Id.toString() : getId(); // Ensure id is a string or generate a new one
+        return {
+          id: nodeId,
+          type: "default",
+          data: { label: node.label }, // Use the 'name' property as the label
+          // position: { x: 0, y: 50 },
+          position: node.position ? { x: node.x, y: node.y } : { x: 0, y: 50 }, // Use the position from the API if available, otherwise use default position
+          nodeName: node.label, // Add a new property to store the node name
+          // edges:node.edges
+          // {source:node.edges.sourse, target:node.edges.target}:{source:1, y:2},
+        };
+      });
+      setNodes(updatedNodes);
+      console.log("updatedNodes===>", updatedNodes); // Update the nodes state with data received from the API
+    } catch (error) {
+      console.error("Error fetching nodes from API:", error);
     }
-
-    const data = await response.json();
-    console.log("data===>",data)
- const updatedNodes = data.map((node) => {
-  const nodeId = node.Id != null ? node.Id.toString() : getId(); // Ensure id is a string or generate a new one
-  return {
-    id: nodeId,
-    type: "input",
-    data: { label: node.label
-    }, // Use the 'name' property as the label
-    // position: { x: 0, y: 50 },
-    position: node.position ? { x: node.x, y: node.y } : { x: 0, y: 50 }, // Use the position from the API if available, otherwise use default position
-    // edges:node.edges  
-    // {source:node.edges.sourse, target:node.edges.target}:{source:1, y:2},
-   
-    
   };
-});
-    setNodes(updatedNodes);
-    console.log("updatedNodes===>",updatedNodes) // Update the nodes state with data received from the API
-  } catch (error) {
-    console.error("Error fetching nodes from API:", error);
-  }
-};
-
 
   useEffect(() => {
     fetchNodesFromApi();
@@ -97,9 +92,7 @@ const fetchNodesFromApi = async () => {
     //     return node;
     //   })
     // );
-  }, [nodeName, setNodes,setEdges]);
-
-
+  }, [nodeName, setNodes, setEdges]);
 
   const onConnectStart = useCallback((_, { nodeId }) => {
     connectingNodeId.current = nodeId;
@@ -128,9 +121,10 @@ const fetchNodesFromApi = async () => {
         // },
         const nodeName = prompt("Enter node name:");
         if (nodeName) {
-          // Only create a new node if a name is provided 
+          // Only create a new node if a name is provided
           const newNode = {
-            id,
+            // id,
+            id: `node-${id}`, // Generate a unique ID for the new node
             data: { label: nodeName },
 
             position: project({
@@ -138,9 +132,18 @@ const fetchNodesFromApi = async () => {
               y: event.clientY - top,
             }),
           };
-          setNodes((nds) => nds.concat(newNode));
-          setEdges((eds) =>
-            eds.concat({ id, source: connectingNodeId.current, target: id })
+          setNodes((prevNodes) => [...prevNodes, newNode]);
+
+          // setNodes((nds) => nds.concat(newNode));
+          // setEdges((eds) =>
+          //   eds.concat({ id, source: connectingNodeId.current, target: id })
+          // Update the edges to use the new node's id as the target
+          setEdges((prevEdges) =>
+            prevEdges.concat({
+              id,
+              source: connectingNodeId.current,
+              target: newNode.id,
+            })
           );
         }
       }
@@ -148,13 +151,29 @@ const fetchNodesFromApi = async () => {
     [project]
   );
 
+  const updateNodeLabel = (nodeId, newLabel) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, label: newLabel } }
+          : node
+      )
+    );
+     // Update the individualNodeNames state
+     setIndividualNodeNames((prevNames) => ({
+      ...prevNames,
+      [nodeId]: newLabel,
+    }));
+  };
+
 
 
 
   return (
     <div className="wrapper" ref={reactFlowWrapper} style={{ height: 500 }}>
       <ReactFlow
-        nodes={nodes}
+        // nodes={nodes}
+        nodes={nodes.map((node) => ({ ...node, key: node.id }))} // Add 'key' prop to each node
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -166,28 +185,38 @@ const fetchNodesFromApi = async () => {
         fitViewOptions={fitViewOptions}
         attributionPosition="top-right"
       >
-        
-             <div className="updatenode__controls">
+        {/* <div className="updatenode__controls">
         <label>label:</label>
         <input value={nodeName} onChange={(evt) => setNodeName(evt.target.value)} />
-        </div>
-   
-        {nodes.map((node) => (
-          <div
-            key={node.id}
-            className="node"
-            style={{
-              position: "absolute",
-              left: node.position.x,
-              top: node.position.y,
-            }}
-          >
-             
-            <div>{node.name}</div>
- 
-          </div>
-        ))}
+        </div> */}
+
         
+
+        {nodes.map((node) => (
+          <div key={node.id}>
+            <div className="updatenode__controls">
+              <label>label:</label>
+              <input
+                value={node.data.label}
+                onChange={(evt) => updateNodeLabel(node.id, evt.target.value)}
+              />
+            </div>
+          </div>
+
+          // <div
+          //   key={node.id}
+          //   className="node"
+          //   style={{
+          //     position: "absolute",
+          //     left: node.position.x,
+          //     top: node.position.y,
+          //   }}
+          // >
+
+          //   <div>{node.name}</div>
+
+          // </div>
+        ))}
       </ReactFlow>
     </div>
   );
@@ -200,3 +229,7 @@ const Flowchart = () => (
 );
 
 export default Flowchart;
+
+
+
+
