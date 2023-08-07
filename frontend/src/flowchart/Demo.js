@@ -153,7 +153,7 @@ const AddNodeOnEdgeDrop = () => {
   
 
   return (
-    <div className="wrapper" ref={reactFlowWrapper} style={{ height: 500 }}>
+    <div className="wrapper" ref={reactFlowWrapper} style={{ height: '100vh' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -173,6 +173,7 @@ const AddNodeOnEdgeDrop = () => {
           onChange={(evt) => setNodeName(evt.target.value)}
         />
         <button onClick={submitToDatabase}>Submit</button>
+        
       </div>
     </div>
   );
