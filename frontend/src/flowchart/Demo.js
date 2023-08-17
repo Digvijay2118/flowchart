@@ -8,12 +8,17 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import axios from "axios";
-
-import TextUpdateNode from './TextUpdateNode';
-
-const rfStyle = {
-  backgroundColor: '#B8CEFF',
-};  
+// Custom function to generate custom node HTML
+const generateCustomNodeHtml = (nodeName) => `
+  <div class="main_box">
+    <div class="inner_box">
+      <div class="img_box">
+        <input type="file" />
+      </div>
+      <input type="text" value="${nodeName}" />
+    </div>
+  </div>
+`;
 
 const initialNodes = [
   {
@@ -31,7 +36,7 @@ const fitViewOptions = {
   padding: 3,
 };
 
-const nodeTypes = { textUpdater: TextUpdateNode };
+// const nodeTypes = { textUpdater: TextUpdateNode };
 
 const AddNodeOnEdgeDrop = () => {
   const reactFlowWrapper = useRef(null);
@@ -59,7 +64,6 @@ const AddNodeOnEdgeDrop = () => {
           node.data = {
             ...node.data,
             label: nodeName,
-           
           };
           // Update the firstNodeData with the new data for the first node
           setFirstNodeData(node.data);
@@ -74,6 +78,83 @@ const AddNodeOnEdgeDrop = () => {
     connectingNodeId.current = nodeId;
   }, []);
 
+  // const onConnectEnd = useCallback(
+  //   (event) => {
+  //     const targetIsPane = event.target.classList.contains("react-flow__pane");
+
+  //     if (targetIsPane) {
+  //       const { top, left } = reactFlowWrapper.current.getBoundingClientRect();
+  //       const id = getId();
+  //       const nodeName = prompt("Enter node name:");
+  //       if (nodeName) {
+  //         const newNode = {
+  //           id: `node-${id}`,
+  //           data: { label: nodeName },
+  //           // type: 'textUpdater',
+  //           position: project({
+  //             x: event.clientX - left - 75,
+  //             y: event.clientY - top,
+  //           }),
+  //         };
+
+  //         setNodes((nds) => nds.concat(newNode));
+  //         setEdges(
+  //           (eds) =>
+  //             eds.concat({
+  //               id,
+  //               source: connectingNodeId.current,
+  //               target: `node-${id}`,
+  //             }) // Updated target to `node-${id}`
+  //         );
+  //         setNewNode(newNode);
+  //            // Log the position of the newly added node
+  //       console.log("New Node Position:", newNode.position);
+  //       }
+  //     }
+  //   },
+  //   [project]
+  // );
+
+  //  const onConnectEnd = useCallback(
+  //   (event) => {
+  //     const targetIsPane = event.target.classList.contains("react-flow__pane");
+
+  //     if (targetIsPane) {
+  //       const { top, left } = reactFlowWrapper.current.getBoundingClientRect();
+  //       const id = getId();
+  //       const nodeName = prompt("Enter node name:");
+  //       if (nodeName) {
+  //         const newNode = {
+  //           id: `node-${id}`,
+  //           type: "custom", // Set the custom node type
+  //           data: {
+  //             label: nodeName,
+  //           },
+  //           position: project({
+  //             x: event.clientX - left - 75,
+  //             y: event.clientY - top,
+  //           }),
+  //         };
+
+  //         setNodes((nds) => nds.concat(newNode));
+  //         setEdges(
+  //           (eds) =>
+  //             eds.concat({
+  //               id,
+  //               source: connectingNodeId.current,
+  //               target: `node-${id}`,
+  //             })
+  //         );
+  //         setNewNode(newNode);
+
+  //         // Log the position of the newly added node
+  //         console.log("New Node Position:", newNode.position);
+  //       }
+  //     }
+  //   },
+  //   [project]
+  // );
+
   const onConnectEnd = useCallback(
     (event) => {
       const targetIsPane = event.target.classList.contains("react-flow__pane");
@@ -85,8 +166,11 @@ const AddNodeOnEdgeDrop = () => {
         if (nodeName) {
           const newNode = {
             id: `node-${id}`,
-            data: { label: nodeName },
-            type: 'textUpdater',
+            type: "custom ", // Set the default node type
+            data: {
+              label: nodeName,
+              innerHtml: generateCustomNodeHtml(nodeName), // Set inner HTML
+            },
             position: project({
               x: event.clientX - left - 75,
               y: event.clientY - top,
@@ -94,17 +178,17 @@ const AddNodeOnEdgeDrop = () => {
           };
 
           setNodes((nds) => nds.concat(newNode));
-          setEdges(
-            (eds) =>
-              eds.concat({
-                id,
-                source: connectingNodeId.current,
-                target: `node-${id}`,
-              }) // Updated target to `node-${id}`
+          setEdges((eds) =>
+            eds.concat({
+              id,
+              source: connectingNodeId.current,
+              target: `node-${id}`,
+            })
           );
           setNewNode(newNode);
-             // Log the position of the newly added node
-        console.log("New Node Position:", newNode.position);
+
+          // Log the position of the newly added node
+          console.log("New Node Position:", newNode.position);
         }
       }
     },
@@ -128,7 +212,7 @@ const AddNodeOnEdgeDrop = () => {
   //         console.log("res====>",response);
   //         // Handle the response here, e.g., show a success message to the user.
   //       })
-  //       .catch((error) => {  
+  //       .catch((error) => {
   //         console.error("Error submitting to database:", error);
   //         // Handle the error here, e.g., show an error message to the user.
   //       });
@@ -137,15 +221,14 @@ const AddNodeOnEdgeDrop = () => {
   const submitToDatabase = () => {
     if (nodes.length > 0) {
       const nodeDataList = nodes.map((node) => ({
-        
         // data: node.data.data,
         // position: node.position,
         label: node.data.label,
         x: node.position.x,
         y: node.position.y,
       }));
-      console.log("nodelist====>",nodeDataList)
-  
+      console.log("nodelist====>", nodeDataList);
+
       axios
         .post("http://localhost:5000/api/v1/flowchart/insert", {
           data: nodeDataList,
@@ -160,10 +243,9 @@ const AddNodeOnEdgeDrop = () => {
         });
     }
   };
-  
 
   return (
-    <div className="wrapper" ref={reactFlowWrapper} style={{ height: '100vh' }}>
+    <div className="wrapper" ref={reactFlowWrapper} style={{ height: "100vh" }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -173,9 +255,9 @@ const AddNodeOnEdgeDrop = () => {
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
         snapToGrid={true}
-        nodeTypes={nodeTypes}
-      fitView
-      style={rfStyle}
+        // nodeTypes={nodeTypes}
+        fitView
+        // style={rfStyle}
         fitViewOptions={fitViewOptions}
       />
       <div className="updatenode__controls">
@@ -185,7 +267,6 @@ const AddNodeOnEdgeDrop = () => {
           onChange={(evt) => setNodeName(evt.target.value)}
         />
         <button onClick={submitToDatabase}>Submit</button>
-        
       </div>
     </div>
   );
