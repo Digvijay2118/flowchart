@@ -9,6 +9,12 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import axios from "axios";
 
+import TextUpdateNode from './TextUpdateNode';
+
+const rfStyle = {
+  backgroundColor: '#B8CEFF',
+};  
+
 const initialNodes = [
   {
     id: "0",
@@ -24,6 +30,8 @@ const getId = () => `${id++}`;
 const fitViewOptions = {
   padding: 3,
 };
+
+const nodeTypes = { textUpdater: TextUpdateNode };
 
 const AddNodeOnEdgeDrop = () => {
   const reactFlowWrapper = useRef(null);
@@ -51,6 +59,7 @@ const AddNodeOnEdgeDrop = () => {
           node.data = {
             ...node.data,
             label: nodeName,
+           
           };
           // Update the firstNodeData with the new data for the first node
           setFirstNodeData(node.data);
@@ -77,6 +86,7 @@ const AddNodeOnEdgeDrop = () => {
           const newNode = {
             id: `node-${id}`,
             data: { label: nodeName },
+            type: 'textUpdater',
             position: project({
               x: event.clientX - left - 75,
               y: event.clientY - top,
@@ -163,7 +173,9 @@ const AddNodeOnEdgeDrop = () => {
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
         snapToGrid={true}
-        fitView
+        nodeTypes={nodeTypes}
+      fitView
+      style={rfStyle}
         fitViewOptions={fitViewOptions}
       />
       <div className="updatenode__controls">
